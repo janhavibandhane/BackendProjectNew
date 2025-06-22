@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv'; //dotenv helps load environment variables from a .env file into process.env, keeping sensitive values like passwords/API keys out of your code.
 dotenv.config(); //call .env file
-
+import cors from 'cors'
 import connectDB from './src/config/db.js'
 import authRoutes from './src/routes/authRoutes.js'
 
@@ -11,6 +11,10 @@ connectDB(); //Calls your connectDB function to connect to your MongoDB before s
 const app = express(); 
 // Creates an instance of the Express app.
 // This object (app) is used to define middleware, routes, and start the server.
+
+app.use(cors({
+  origin: 'http://localhost:5173', // replace with your frontend domain
+}));
 
 // ✅ Middleware to parse JSON bodies
 app.use(express.json()); 

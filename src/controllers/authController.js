@@ -17,10 +17,10 @@ export const register = async (req, res) => {
   try {
    
     // step 1
-    const { name, email, password } = req.body;
+    const { name, email, password,content,instaId,age } = req.body;
 
     // step 2
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !content || !age) {
       return res.status(400).json({ message: "All fileds are required" });
     }
 
@@ -37,6 +37,9 @@ export const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      content,
+      instaId,
+      age
     });
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
@@ -73,6 +76,9 @@ export const login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        content:user.content,
+      instaId:user.instaId,
+      age:user.age
       },
     });
 

@@ -13,7 +13,7 @@ const app = express();
 // This object (app) is used to define middleware, routes, and start the server.
 
 app.use(cors({
-  origin: 'http://localhost:5173', // replace with your frontend domain
+  origin: ['http://localhost:5173','https://contentfuel.netlify.app'], // replace with your frontend domain
 }));
 
 // ✅ Middleware to parse JSON bodies

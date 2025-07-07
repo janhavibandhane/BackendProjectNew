@@ -3,9 +3,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../model/User.js";
 
-
-
-
 //Register api
  // setps for register
     // 1.take all inputs from user

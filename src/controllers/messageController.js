@@ -1,48 +1,25 @@
-import { pipeline } from '@xenova/transformers';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import dotenv from 'dotenv';
+dotenv.config();
 
-let pipe;
 
-// Load the model once at server start
-export const loadModel = async () => {
-  try {
-    console.log('⏳ Loading local model: Xenova/distilgpt2...');
-    pipe = await pipeline('text-generation', 'Xenova/llama2.c-stories15M');
-    console.log('✅ Model loaded successfully!');
-  } catch (error) {
-    console.error('❌ Failed to load model:', error);
-  }
-};
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-// Handle POST request to generate a reply
+
 export const sendMessage = async (req, res) => {
   const { message } = req.body;
 
-  if (!pipe) {
-    return res.status(503).json({ error: 'Model not ready yet. Try again shortly.' });
-  }
-
-  if (!message || typeof message !== 'string') {
-    return res.status(400).json({ error: 'Valid message is required.' });
-  }
-
-  // Simple prompt for distilgpt2 (no special formatting)
-  const prompt = `${message.trim()}\n`;
-
   try {
-    const output = await pipe(prompt, {
-      temperature: 0.7,
-      max_new_tokens: 100,
-    });
+    const chat = model.startChat();
+    const result = await chat.sendMessage(message);
+    const response = await result.response;
+    const text = response.text();
 
-    const generated = output?.[0]?.generated_text || '';
-    console.log('🧠 Generated:', generated);
-
-    // Remove the prompt from the response
-    const reply = generated.replace(prompt, '').trim();
-
-    res.json({ reply: reply || 'No meaningful reply generated.' });
+    res.status(200).json({ reply: text });
   } catch (error) {
-    console.error('❌ Text generation error:', error);
-    res.status(500).json({ error: 'Failed to generate response.' });
+    console.error('Gemini API Error:', error.message);
+    res.status(500).json({ error: 'Failed to generate response' });
   }
 };
+

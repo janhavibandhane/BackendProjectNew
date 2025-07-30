@@ -124,7 +124,7 @@ const app = express();
 
 // Express Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://contentfuel.netlify.app'],
+  origin: ['http://localhost:5173', 'https://contentfuel.netlify.app,exp://192.168.0.105:8081'],
 }));
 app.use(express.json());
 

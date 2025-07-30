@@ -4,68 +4,94 @@ import jwt from "jsonwebtoken";
 import User from "../model/User.js";
 
 //Register api
- // setps for register
-    // 1.take all inputs from user
-    // 2.check all inputs are entered or not
-    // 3.check if user is alrdey exist
-    // 4.then hash password
-    // 5.create new user
+// setps for register
+// 1.take all inputs from user
+// 2.check all inputs are entered or not
+// 3.check if user is alrdey exist
+// 4.then hash password
+// 5.create new user
 export const register = async (req, res) => {
   try {
-   
-    // step 1
-    const { name, email, password,content,instaId,age } = req.body;
+    const JWT_SECRET = process.env.JWT_SECRET;
+    // Step 1: Extract data
+    const { name, email, password, content, instaId, age } = req.body;
 
-    // step 2
+    // Step 2: Validate required fields
     if (!name || !email || !password || !content || !age) {
-      return res.status(400).json({ message: "All fileds are required" });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    // step 3
+    // Step 3: Check if user already exists
     const existUser = await User.findOne({ email });
-    if (existUser)
-      return res.status(400).json({ message: "user All ready exist" });
+    if (existUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
 
-    // step 4
+    // Step 4: Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // step 5
-   const newUser = await User.create({
+    // Step 5: Create new user
+    const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
       content,
       instaId,
-      age
+      age,
     });
-    res.status(201).json({ message: "User registered successfully" });
+
+    // Step 6: Generate token
+    const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    // Step 7: Return response without password
+    const userResponse = {
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      content: newUser.content,
+      instaId: newUser.instaId,
+      age: newUser.age,
+    };
+
+    res.status(201).json({
+      message: "User registered successfully",
+      user: userResponse,
+      token,
+    });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 //Login Api
 //Steps to write Login Api
-  // 1. take input from user email and pass
-  // 2. check email match is present in db or not
-  // 3. decrypt pass
-  // 4. match password
-  // 5. generate jwt 
+// 1. take input from user email and pass
+// 2. check email match is present in db or not
+// 3. decrypt pass
+// 4. match password
+// 5. generate jwt
 export const login = async (req, res) => {
   try {
-    const JWT_SECRET =process.env.JWT_SECRET;
+    const JWT_SECRET = process.env.JWT_SECRET;
     const { email, password } = req.body;
 
     // Step 1: Check for user
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid email or password' });
+    if (!user)
+      return res.status(400).json({ message: "Invalid email or password" });
 
     // Step 2: Compare password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid email or password" });
 
     // Step 3: Generate token
-    const token = jwt.sign({ userId: user._id },JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.json({
       token,
@@ -73,14 +99,13 @@ export const login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        content:user.content,
-      instaId:user.instaId,
-      age:user.age
+        content: user.content,
+        instaId: user.instaId,
+        age: user.age,
       },
     });
-
   } catch (error) {
-    console.error('Login error:', error.message); 
-    res.status(500).json({ message: 'Server error' });
+    console.error("Login error:", error.message);
+    res.status(500).json({ message: "Server error" });
   }
-}; 
+};
